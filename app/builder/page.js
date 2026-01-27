@@ -13,45 +13,52 @@ export default function BuilderPage() {
   const [title, setTitle] = useState("منيو سعود");
   const [subtitle, setSubtitle] = useState("اختر القسم اللي تبيه 👇");
   const [notice, setNotice] = useState("الأسعار شاملة الضريبة - يسعدنا خدمتك");
+
   const [cats, setCats] = useState([
     {
-      id: "coffee",
+      id: uid(),
       name: "قهوة",
       note: "ساخن / بارد",
       items: [
-        { id: "latte", name: "لاتيه", desc: "حليب + اسبريسو", price: "18 ر.س", badge: "الأكثر طلباً" },
-        { id: "cap", name: "كابتشينو", desc: "رغوة كثيفة", price: "17 ر.س", badge: "" },
-      ],
-    },
+        { id: uid(), name: "لاتيه", desc: "حليب + اسبريسو", price: "18 ر.س", badge: "الأكثر طلباً" },
+        { id: uid(), name: "كابتشينو", desc: "رغوة كثيفة", price: "17 ر.س", badge: "" }
+      ]
+    }
   ]);
 
-  const payload = useMemo(() => ({ title, subtitle, notice, categories: cats }), [title, subtitle, notice, cats]);
+  const payload = useMemo(
+    () => ({ title, subtitle, notice, categories: cats }),
+    [title, subtitle, notice, cats]
+  );
 
   const shareUrl = useMemo(() => {
     try {
       const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
-      return typeof window !== "undefined" ? `${window.location.origin}/menu?data=${encoded}` : "";
+      return typeof window !== "undefined"
+        ? `${window.location.origin}/menu?data=${encoded}`
+        : "";
     } catch {
       return "";
     }
   }, [payload]);
 
-  const copy = async (txt) => {
-    try {
-      await navigator.clipboard.writeText(txt);
-      alert("تم النسخ ✅");
-    } catch {
-      alert("انسخ يدويًا 🙏");
-    }
+  const openMenu = () => {
+    if (!shareUrl) return;
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
   };
 
-  const addCat = () => {
+  const copy = async () => {
+    await navigator.clipboard.writeText(shareUrl);
+    alert("تم نسخ رابط المنيو ✅");
+  };
+
+  const addCat = () =>
     setCats((p) => [...p, { id: uid(), name: "قسم جديد", note: "", items: [] }]);
-  };
 
-  const removeCat = (id) => setCats((p) => p.filter((c) => c.id !== id));
+  const removeCat = (id) =>
+    setCats((p) => p.filter((c) => c.id !== id));
 
-  const addItem = (catId) => {
+  const addItem = (catId) =>
     setCats((p) =>
       p.map((c) =>
         c.id === catId
@@ -59,159 +66,120 @@ export default function BuilderPage() {
           : c
       )
     );
-  };
 
-  const removeItem = (catId, itemId) => {
-    setCats((p) => p.map((c) => (c.id === catId ? { ...c, items: c.items.filter((i) => i.id !== itemId) } : c)));
-  };
-
-  const updateCat = (catId, key, value) => {
-    setCats((p) => p.map((c) => (c.id === catId ? { ...c, [key]: value } : c)));
-  };
-
-  const updateItem = (catId, itemId, key, value) => {
+  const removeItem = (catId, itemId) =>
     setCats((p) =>
       p.map((c) =>
         c.id === catId
-          ? { ...c, items: c.items.map((i) => (i.id === itemId ? { ...i, [key]: value } : i)) }
+          ? { ...c, items: c.items.filter((i) => i.id !== itemId) }
           : c
       )
     );
-  };
+
+  const updateCat = (catId, key, val) =>
+    setCats((p) => p.map((c) => (c.id === catId ? { ...c, [key]: val } : c)));
+
+  const updateItem = (catId, itemId, key, val) =>
+    setCats((p) =>
+      p.map((c) =>
+        c.id === catId
+          ? { ...c, items: c.items.map((i) => (i.id === itemId ? { ...i, [key]: val } : i)) }
+          : c
+      )
+    );
 
   return (
     <div className="space-y-8">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="card p-6 md:p-10"
-      >
+
+      {/* HEADER */}
+      <motion.div className="card p-6 md:p-10">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
             <Sparkles />
           </div>
           <div>
-            <h1 className="text-2xl md:text-3xl font-extrabold">صانع المنيو</h1>
-            <p className="mt-1 text-white/70">عدّل البيانات ثم خذ رابط المشاركة و QR</p>
+            <h1 className="text-2xl font-black">صانع المنيو الإلكتروني</h1>
+            <p className="text-white/60 text-sm">صمّم منيوك واطلعه جاهز فورًا مع رابط و QR</p>
           </div>
-        </div>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <label className="space-y-2">
-            <div className="text-sm text-white/70">عنوان المنيو</div>
-            <input className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-brand-400/60"
-              value={title} onChange={(e)=>setTitle(e.target.value)} />
-          </label>
-
-          <label className="space-y-2 md:col-span-2">
-            <div className="text-sm text-white/70">وصف مختصر</div>
-            <input className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-brand-400/60"
-              value={subtitle} onChange={(e)=>setSubtitle(e.target.value)} />
-          </label>
-
-          <label className="space-y-2 md:col-span-3">
-            <div className="text-sm text-white/70">ملاحظة/تنبيه</div>
-            <input className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-brand-400/60"
-              value={notice} onChange={(e)=>setNotice(e.target.value)} />
-          </label>
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <button className="btn btnPrimary" onClick={addCat}><Plus size={18} /> إضافة قسم</button>
-          <a className="btn" href="/menu" target="_blank">فتح المنيو</a>
+          <button className="btn" onClick={addCat}>
+            <Plus size={18} /> إضافة قسم
+          </button>
+
+          <button className="btn btnPrimary" onClick={openMenu}>
+            <QrCode size={18} /> إنشاء المنيو وفتحه
+          </button>
+
+          <button className="btn" onClick={copy}>
+            <Copy size={18} /> نسخ الرابط
+          </button>
         </div>
+
+        {shareUrl && (
+          <div className="mt-5 flex items-center gap-4">
+            <QRCodeCanvas value={shareUrl} size={110} />
+            <div className="text-sm text-white/70">
+              امسح الكود أو شارك الرابط مباشرة مع العميل
+            </div>
+          </div>
+        )}
       </motion.div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="space-y-5">
-          {cats.map((c) => (
-            <div key={c.id} className="card p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div className="font-bold text-lg">القسم</div>
-                <button className="btn" onClick={() => removeCat(c.id)}><Trash2 size={18} /> حذف</button>
-              </div>
+      {/* MENU BUILDER */}
+      {cats.map((cat) => (
+        <div key={cat.id} className="card p-6 space-y-4">
+          <div className="flex gap-2 items-center">
+            <input
+              className="input flex-1"
+              value={cat.name}
+              onChange={(e) => updateCat(cat.id, "name", e.target.value)}
+              placeholder="اسم القسم"
+            />
+            <button className="btn" onClick={() => removeCat(cat.id)}>
+              <Trash2 size={16} />
+            </button>
+          </div>
 
-              <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <label className="space-y-2">
-                  <div className="text-sm text-white/70">اسم القسم</div>
-                  <input className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-brand-400/60"
-                    value={c.name} onChange={(e) => updateCat(c.id, "name", e.target.value)} />
-                </label>
-                <label className="space-y-2">
-                  <div className="text-sm text-white/70">ملاحظة</div>
-                  <input className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-brand-400/60"
-                    value={c.note} onChange={(e) => updateCat(c.id, "note", e.target.value)} />
-                </label>
-              </div>
+          <input
+            className="input"
+            value={cat.note}
+            onChange={(e) => updateCat(cat.id, "note", e.target.value)}
+            placeholder="ملاحظة القسم"
+          />
 
-              <div className="mt-4 flex justify-between items-center">
-                <div className="text-sm text-white/70">الأصناف</div>
-                <button className="btn" onClick={() => addItem(c.id)}><Plus size={18} /> إضافة صنف</button>
-              </div>
-
-              <div className="mt-3 space-y-3">
-                {c.items.map((i) => (
-                  <div key={i.id} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex justify-between items-center gap-3">
-                      <div className="font-semibold">{i.name || "صنف"}</div>
-                      <button className="btn" onClick={() => removeItem(c.id, i.id)}><Trash2 size={18} /></button>
-                    </div>
-
-                    <div className="mt-3 grid gap-3 md:grid-cols-2">
-                      <input placeholder="اسم الصنف" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-brand-400/60"
-                        value={i.name} onChange={(e) => updateItem(c.id, i.id, "name", e.target.value)} />
-                      <input placeholder="السعر (مثال: 18 ر.س)" className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-brand-400/60"
-                        value={i.price} onChange={(e) => updateItem(c.id, i.id, "price", e.target.value)} />
-                      <input placeholder="وصف" className="md:col-span-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-brand-400/60"
-                        value={i.desc} onChange={(e) => updateItem(c.id, i.id, "desc", e.target.value)} />
-                      <input placeholder="بادج (اختياري)" className="md:col-span-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 outline-none focus:border-brand-400/60"
-                        value={i.badge} onChange={(e) => updateItem(c.id, i.id, "badge", e.target.value)} />
-                    </div>
-                  </div>
-                ))}
-                {c.items.length === 0 ? (
-                  <div className="text-sm text-white/60">لا يوجد أصناف—اضف صنف.</div>
-                ) : null}
-              </div>
+          {cat.items.map((item) => (
+            <div key={item.id} className="grid md:grid-cols-4 gap-2">
+              <input
+                className="input"
+                value={item.name}
+                onChange={(e) => updateItem(cat.id, item.id, "name", e.target.value)}
+                placeholder="اسم الصنف"
+              />
+              <input
+                className="input"
+                value={item.desc}
+                onChange={(e) => updateItem(cat.id, item.id, "desc", e.target.value)}
+                placeholder="الوصف"
+              />
+              <input
+                className="input"
+                value={item.price}
+                onChange={(e) => updateItem(cat.id, item.id, "price", e.target.value)}
+                placeholder="السعر"
+              />
+              <button className="btn" onClick={() => removeItem(cat.id, item.id)}>
+                <Trash2 size={16} />
+              </button>
             </div>
           ))}
+
+          <button className="btn" onClick={() => addItem(cat.id)}>
+            + إضافة صنف
+          </button>
         </div>
-
-        <div className="space-y-5">
-          <div className="card p-6">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 font-bold text-lg"><QrCode /> رابط و QR</div>
-              <button className="btn" onClick={() => copy(shareUrl)}><Copy size={18} /> نسخ الرابط</button>
-            </div>
-            <p className="mt-2 text-sm text-white/70 break-all">{shareUrl}</p>
-
-            <div className="mt-5 flex flex-wrap items-center gap-5">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                <QRCodeCanvas value={shareUrl || "https://example.com"} size={180} includeMargin />
-              </div>
-              <div className="text-sm text-white/70 space-y-2">
-                <div>• افتح الرابط في جوالك وتأكد من العرض.</div>
-                <div>• اطبع الـ QR وحطه على الطاولات/الكاشير.</div>
-                <div>• تقدر تنسخ JSON وتحطه في data/menu.json لو تبي تثبته.</div>
-              </div>
-            </div>
-
-            <div className="mt-5">
-              <button className="btn" onClick={() => copy(JSON.stringify(payload, null, 2))}><Copy size={18} /> نسخ JSON</button>
-            </div>
-          </div>
-
-          <div className="card p-6">
-            <div className="font-bold text-lg">معاينة سريعة</div>
-            <p className="mt-2 text-sm text-white/70">هذه معاينة مختصرة—المعاينة الكاملة عبر /menu.</p>
-            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-              <div className="text-xl font-extrabold">{title}</div>
-              <div className="text-white/70">{subtitle}</div>
-              <div className="mt-3 text-xs text-white/60">{notice}</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      ))}
     </div>
   );
 }
