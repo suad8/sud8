@@ -23,7 +23,7 @@ export default function Hero() {
               </span>
             </h1>
             <p className="mt-4 text-white/70 text-base md:text-lg">
-              تصميم أزرق/أبيض، أنميشن ناعم، وأيقونات. عدّل المحتوى بسهولة من ملفات JSON.
+              تمنيو سعود يقدم لك منيو إلكتروني احترافي للمطاعم والكافيهات مع عرض الخدمات والباقات بشكل مرتب وواضح، قابل للتحديث في أي وقت.
             </p>
 
             <div className="mt-6 flex flex-wrap gap-3">
