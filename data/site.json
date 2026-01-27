@@ -1,0 +1,16 @@
+{
+  "brand": "منيو سعود",
+  "links": {
+    "whatsapp": "https://wa.me/966500000000",
+    "instagram": "https://instagram.com/",
+    "website": "https://example.com"
+  },
+  "contact": {
+    "phone": "+966 50 000 0000",
+    "email": "hello@menusaud.com",
+    "note": "ضع روابطك الحقيقية هنا. تقدر تغيّر الأرقام والإيميل من ملف data/site.json."
+  },
+  "footer": {
+    "about": "منيو سعود: قالب احترافي لموقع منيو إلكتروني مع صانع منيو و QR، وصفحات خدمات وباقات وأعمال."
+  }
+}
