@@ -44,32 +44,55 @@ export async function POST(req: Request) {
   if (!page) return fail("أنشئ صفحتك أولًا", 400);
 
   const max = planOf(user.plan).maxAccounts;
-  if (page._count.accounts >= max) {
+
+  /**
+   * العدّ والإنشاء داخل معاملة واحدة مع قفل صف الصفحة.
+   *
+   * فحصهما منفصلَين سباقٌ كلاسيكي: طلبات متوازية تعدّ كلها قبل أن يكتب
+   * أيٌّ منها، فتمرّ جميعها. قياسًا: 12 طلبًا متزامنًا أنشأت 6 حسابات
+   * والحد 3. القفل يُسلسل الطلبات على الصفحة نفسها فقط، فكل طلب يرى
+   * العدد بعد سابقه.
+   */
+  const isPostgres = (process.env.DATABASE_URL ?? "").startsWith("postgres");
+
+  const result = await db.$transaction(async (tx) => {
+    if (isPostgres) {
+      // SQLite لا يدعم FOR UPDATE، لكنه يُسلسل الكتابة أصلًا بكاتب واحد
+      await tx.$executeRaw`SELECT id FROM "Page" WHERE id = ${page.id} FOR UPDATE`;
+    }
+
+    const count = await tx.account.count({ where: { pageId: page.id } });
+    if (count >= max) return { limited: true as const };
+
+    const last = await tx.account.findFirst({
+      where: { pageId: page.id },
+      orderBy: { sortOrder: "desc" },
+      select: { sortOrder: true },
+    });
+
+    const account = await tx.account.create({
+      data: {
+        pageId: page.id,
+        kind: parsed.data.kind,
+        provider: parsed.data.provider,
+        beneficiary: parsed.data.beneficiary,
+        valueType: parsed.data.valueType,
+        value: parsed.data.value,
+        note: parsed.data.note || null,
+        isHidden: parsed.data.isHidden ?? false,
+        sortOrder: (last?.sortOrder ?? -1) + 1,
+      },
+    });
+
+    return { limited: false as const, account };
+  });
+
+  if (result.limited) {
     return fail(
       `وصلت الحد الأقصى لباقتك (${max} حسابات). رقِّ إلى PRO لإضافة المزيد.`,
       403,
     );
   }
 
-  const last = await db.account.findFirst({
-    where: { pageId: page.id },
-    orderBy: { sortOrder: "desc" },
-    select: { sortOrder: true },
-  });
-
-  const account = await db.account.create({
-    data: {
-      pageId: page.id,
-      kind: parsed.data.kind,
-      provider: parsed.data.provider,
-      beneficiary: parsed.data.beneficiary,
-      valueType: parsed.data.valueType,
-      value: parsed.data.value,
-      note: parsed.data.note || null,
-      isHidden: parsed.data.isHidden ?? false,
-      sortOrder: (last?.sortOrder ?? -1) + 1,
-    },
-  });
-
-  return ok({ account }, 201);
+  return ok({ account: result.account }, 201);
 }

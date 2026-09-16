@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { accountSchema, fieldErrors } from "@/lib/validation";
+import { accountSchema, fieldErrors, isValidId } from "@/lib/validation";
 import { assertSameOrigin, fail, ok, readJson, requireUser, tooMany } from "@/lib/api";
 import { LIMITS } from "@/lib/ratelimit";
 
@@ -12,6 +12,10 @@ type Ctx = { params: Promise<{ id: string }> };
  * لمستخدم تعديل حساب غيره حتى لو خمّن المعرّف.
  */
 async function ownedAccount(userId: string, accountId: string) {
+  // نفحص الشكل قبل الاستعلام: معرّف فيه بايت صفري يجعل PostgreSQL
+  // يرمي خطأ ترميز، فيصير 500 بدل 404 المتوقّع
+  if (!isValidId(accountId)) return null;
+
   return db.account.findFirst({
     where: { id: accountId, page: { userId } },
     select: { id: true, pageId: true },

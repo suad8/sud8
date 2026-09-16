@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { isValidId } from "@/lib/validation";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -12,6 +13,11 @@ type Ctx = { params: Promise<{ id: string }> };
  */
 export async function GET(_req: Request, { params }: Ctx) {
   const { id } = await params;
+
+  // معرّف مشوّه لا يصل إلى القاعدة — وإلا رفضه PostgreSQL بخطأ 500
+  if (!isValidId(id)) {
+    return new Response("Not found", { status: 404 });
+  }
 
   const media = await db.media.findUnique({
     where: { id },

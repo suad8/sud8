@@ -136,3 +136,16 @@ export function fieldErrors(error: z.ZodError): Record<string, string> {
   }
   return out;
 }
+
+/**
+ * معرّفات cuid كما يولّدها Prisma.
+ *
+ * تمريرها للقاعدة بلا فحص يجعل مُدخلًا مثل `%00` يصل إلى PostgreSQL،
+ * الذي يرفض البايت الصفري بخطأ ترميز، فيتحوّل الطلب إلى 500 بدل 404.
+ * الفحص هنا يبقي الأخطاء المتوقّعة أخطاءً متوقّعة.
+ */
+export const CUID_RE = /^c[a-z0-9]{20,32}$/;
+
+export function isValidId(id: string): boolean {
+  return CUID_RE.test(id);
+}
