@@ -1,6 +1,26 @@
+# التبعيات
 node_modules
+
+# مخرجات البناء
 .next
+out
+build
+
+# ذاكرة TypeScript المؤقتة — تكسر تركيب الحاوية على BuildKit لو رُفعت
+*.tsbuildinfo
+
+# البيئة والأسرار
 .env
+.env.local
+.env*.local
+
+# قواعد بيانات محلية
 *.db
 *.db-journal
 dev.db*
+
+# نظام التشغيل والمحررات
+.DS_Store
+*.log
+npm-debug.log*
+.vercel
