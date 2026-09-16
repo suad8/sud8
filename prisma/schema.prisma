@@ -1,0 +1,202 @@
+// مخطط قاعدة بيانات «حوّل»
+//
+// PostgreSQL — المطلوب للنشر على Railway وأي استضافة أخرى، لأن قرص
+// الحاوية مؤقت فـ SQLite تُمسح مع كل نشر.
+//
+// للتطوير المحلي بلا خادم Postgres: بدّل provider إلى "sqlite" واضبط
+// DATABASE_URL="file:./dev.db" ثم npx prisma db push. المخطط يعمل على
+// المحرّكين بلا تعديل آخر — لكن لا ترفع هذا التبديل إلى الإنتاج.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────── المستخدمون ───────────────────────────
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Plan {
+  FREE
+  PRO
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+model User {
+  id            String     @id @default(cuid())
+  email         String     @unique
+  role          Role       @default(USER)
+  plan          Plan       @default(FREE)
+  planExpiresAt DateTime?
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  page          Page?
+  sessions      Session[]
+  media         Media[]
+  subscriptions Subscription[]
+
+  @@index([status])
+  @@index([plan])
+}
+
+// جلسة مبهمة (opaque): نخزّن هاش الرمز فقط، والرمز الخام في كوكي httpOnly.
+// هذا يسمح بإبطال الجلسات فورًا — عكس JWT عديم الحالة.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  userAgent String?
+  ipHash    String? // هاش لا يخزّن الـ IP الخام
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// رموز تحقق البريد. نخزّن هاش bcrypt للرمز لا الرمز نفسه.
+model OtpCode {
+  id         String    @id @default(cuid())
+  email      String
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email, createdAt])
+  @@index([expiresAt])
+}
+
+// ─────────────────────────── الصفحة العامة ───────────────────────────
+
+model Page {
+  id          String  @id @default(cuid())
+  userId      String  @unique
+  username    String  @unique // الرابط القصير: /u/<username>
+  displayName String
+  bio         String?
+  avatarId    String?
+  theme       String  @default("paper")
+  accentColor String? // hex، PRO فقط
+  hideBranding Boolean @default(false) // PRO فقط
+  isPublished Boolean @default(true)
+
+  // إجراءات الإدارة
+  isBlocked   Boolean @default(false)
+  blockReason String?
+
+  viewCount Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts Account[]
+
+  @@index([isBlocked, isPublished])
+}
+
+enum AccountKind {
+  BANK
+  WALLET
+}
+
+enum ValueType {
+  IBAN
+  ACCOUNT_NUMBER
+  WALLET_NUMBER
+}
+
+model Account {
+  id          String      @id @default(cuid())
+  pageId      String
+  kind        AccountKind
+  provider    String // اسم البنك أو المحفظة
+  beneficiary String // اسم المستفيد
+  valueType   ValueType
+  value       String // الآيبان / رقم الحساب / رقم المحفظة
+  note        String?
+  isHidden    Boolean     @default(false)
+  sortOrder   Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@index([pageId, sortOrder])
+}
+
+// الصور مخزّنة في قاعدة البيانات لقابلية النقل (لا اعتماد على نظام ملفات
+// أو تخزين سحابي). الحد الأقصى 2MB بعد إعادة الترميز عبر sharp.
+model Media {
+  id        String   @id @default(cuid())
+  userId    String
+  mimeType  String
+  size      Int
+  width     Int
+  height    Int
+  data      Bytes
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─────────────────────────── الاشتراكات ───────────────────────────
+
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  CANCELED
+  EXPIRED
+  FAILED
+}
+
+model Subscription {
+  id             String             @id @default(cuid())
+  userId         String
+  plan           Plan
+  status         SubscriptionStatus @default(PENDING)
+  provider       String // "manual" | "moyasar" | "tap" | "stripe"
+  providerRef    String? @unique // معرّف العملية لدى البوابة
+  amount         Int // بالهللات
+  currency       String             @default("SAR")
+  periodMonths   Int                @default(1)
+  currentPeriodEnd DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+// سجل تدقيق لإجراءات الإدارة والعمليات الحسّاسة
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String
+  target    String?
+  meta      String? // JSON
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId])
+}

@@ -1,25 +1,44 @@
 {
-  "name": "menu-saud",
+  "name": "hawwil",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "build": "prisma generate && next build --webpack",
+    "start": "prisma migrate deploy || echo '⚠️  فشلت الهجرة — راجع DATABASE_URL'; next start -H 0.0.0.0 -p ${PORT:-3000}",
+    "typecheck": "tsc --noEmit",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:seed": "tsx prisma/seed.ts",
+    "setup": "prisma generate && prisma migrate deploy && tsx prisma/seed.ts",
+    "db:migrate": "prisma migrate deploy"
   },
   "dependencies": {
-    "clsx": "^2.1.1",
-    "framer-motion": "^11.0.0",
-    "lucide-react": "^0.469.0",
-    "next": "14.2.5",
-    "qrcode.react": "^3.1.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "@prisma/client": "6.19.3",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^22.10.5",
+    "@types/nodemailer": "^8.0.2",
+    "@types/qrcode": "^1.5.5",
+    "@types/react": "^19.0.7",
+    "@types/react-dom": "^19.0.3",
+    "autoprefixer": "^10.4.20",
+    "bcryptjs": "^2.4.3",
+    "next": "^16.3.5",
+    "nodemailer": "^10.0.10",
+    "postcss": "^8.5.28",
+    "prisma": "6.19.3",
+    "qrcode": "^1.5.4",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "sharp": "^0.35.4",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.7.3",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.41",
-    "tailwindcss": "^3.4.10"
+    "tsx": "^4.19.2"
+  },
+  "engines": {
+    "node": "22.x"
   }
 }
