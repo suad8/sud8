@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/Brand";
+import { contactEmail } from "@/lib/env";
 
 /** هيكل مشترك للوثائق النظامية — سياسة الخصوصية وشروط الاستخدام */
 export function LegalShell({
@@ -60,5 +61,29 @@ export function Section({
       </h2>
       <div className="mt-2.5 space-y-3 leading-relaxed text-neutral-700">{children}</div>
     </section>
+  );
+}
+
+/**
+ * بريد التواصل النظامي.
+ *
+ * حين لا يُضبط `CONTACT_EMAIL` نعرض تحذيرًا بدل عنوان وهمي: سياسة
+ * الخصوصية تَعِد بالرد خلال 30 يومًا، ووعد بصندوق لا وجود له أسوأ من
+ * الصمت — فليكن الخلل ظاهرًا لمالك المنصة لا مخفيًا عن المستخدم.
+ */
+export function ContactEmail() {
+  if (!contactEmail) {
+    return (
+      <span className="note-warn mt-2 block">
+        لم يُضبط بريد التواصل بعد. اضبط <code>CONTACT_EMAIL</code> في متغيّرات
+        البيئة — الوثيقة تَعِد بالرد على طلبات البيانات خلال 30 يومًا.
+      </span>
+    );
+  }
+
+  return (
+    <a href={`mailto:${contactEmail}`} className="ltr-nums">
+      {contactEmail}
+    </a>
   );
 }

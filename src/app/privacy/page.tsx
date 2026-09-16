@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
-import { LegalShell, Section } from "@/components/LegalShell";
+import { ContactEmail, LegalShell, Section } from "@/components/LegalShell";
+
+/**
+ * تُعرَض عند كل طلب لا وقت البناء: بريد التواصل يأتي من البيئة، ووثيقة
+ * نظامية تحمل عنوانًا قديمًا أسوأ من صفحة تُبنى مرة أخرى.
+ */
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "سياسة الخصوصية",
@@ -116,7 +121,8 @@ export default function PrivacyPage() {
           <li><strong>سحب الموافقة</strong> — أوقف نشر صفحتك أو احذف الحساب</li>
         </ul>
         <p>
-          للحقوق التي تحتاج تدخلنا، راسلنا وسنستجيب خلال <strong>30 يومًا</strong>.
+          للحقوق التي تحتاج تدخلنا، راسلنا على <ContactEmail /> وسنستجيب خلال{" "}
+          <strong>30 يومًا</strong>.
           ولك أن تتقدّم بشكوى إلى الهيئة السعودية للبيانات والذكاء الاصطناعي
           (سدايا) إن لم تقتنع بردّنا.
         </p>
@@ -157,9 +163,11 @@ export default function PrivacyPage() {
 
       <Section n="11" title="التواصل">
         <p>
-          لأي سؤال أو طلب متعلق ببياناتك، راسلنا عبر البريد المذكور في صفحة
-          <Link href="/"> المنصة</Link>. للشكاوى النظامية:
-          الهيئة السعودية للبيانات والذكاء الاصطناعي (سدايا) —{" "}
+          لأي سؤال أو طلب متعلق ببياناتك: <ContactEmail />
+        </p>
+        <p>
+          وإن لم يقنعك ردّنا، فلك أن تتقدّم بشكوى إلى الهيئة السعودية للبيانات
+          والذكاء الاصطناعي (سدايا) —{" "}
           <a href="https://sdaia.gov.sa" target="_blank" rel="noreferrer">sdaia.gov.sa</a>
         </p>
       </Section>

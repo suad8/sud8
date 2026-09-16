@@ -57,6 +57,10 @@ const schema = z.object({
   // بريد أول مدير — يُرقّى تلقائيًا عند التسجيل
   ADMIN_EMAILS: z.preprocess((v) => v ?? "", z.string().default("")),
 
+  // بريد التواصل المعلن في الوثائق النظامية. سياسة الخصوصية تَعِد بالرد
+  // خلال 30 يومًا على طلبات الوصول والتصحيح والحذف، فلا بد أن يصل فعلًا.
+  CONTACT_EMAIL: optionalText,
+
   // ── دخول مؤقت بكلمة مرور ──────────────────────────────────────
   // مخرج طوارئ لصاحب المنصة قبل تفعيل SMTP. مُطفأ افتراضيًا، ويخص
   // حسابًا واحدًا فقط. أطفئه فور عمل البريد.
@@ -127,6 +131,7 @@ const FALLBACK = {
   PRO_PRICE_WAS_HALALAS: 1800,
   PRO_CURRENCY: "SAR",
   ADMIN_EMAILS: process.env.ADMIN_EMAILS ?? "",
+  CONTACT_EMAIL: undefined,
   ALLOW_PASSWORD_LOGIN: false,
   OWNER_EMAIL: undefined,
   OWNER_PASSWORD: undefined,
@@ -149,6 +154,15 @@ if (passwordLoginEnabled) {
       "\n   أطفئه بحذف ALLOW_PASSWORD_LOGIN فور عمل البريد.\n",
   );
 }
+
+/**
+ * بريد التواصل المعلن. يسقط إلى أول بريد مدير إن لم يُضبط صراحةً —
+ * صندوق حقيقي أفضل من عنوان وهمي في وثيقة نظامية.
+ */
+export const contactEmail =
+  env.CONTACT_EMAIL?.trim() ||
+  (env.ADMIN_EMAILS.split(",")[0] ?? "").trim() ||
+  null;
 
 /** قائمة بُرد المدراء بحروف صغيرة */
 export const adminEmails = env.ADMIN_EMAILS.split(",")

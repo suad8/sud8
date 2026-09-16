@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
-import { LegalShell, Section } from "@/components/LegalShell";
+import { ContactEmail, LegalShell, Section } from "@/components/LegalShell";
 import { PLANS, formatPrice } from "@/lib/plans";
+
+/**
+ * تُعرَض عند كل طلب لا وقت البناء: بريد التواصل يأتي من البيئة، ووثيقة
+ * نظامية تحمل عنوانًا قديمًا أسوأ من صفحة تُبنى مرة أخرى.
+ */
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "شروط الاستخدام",
@@ -95,6 +101,13 @@ export default function TermsPage() {
         <p>
           قد نعدّل هذه الشروط، وننشر تاريخ آخر تحديث أعلى الصفحة. استمرارك في
           الاستخدام بعد التعديل موافقة عليه.
+        </p>
+      </Section>
+
+      <Section n="9" title="التواصل">
+        <p>
+          للإبلاغ عن صفحة مخالفة، أو لأي استفسار عن الاشتراك أو الخدمة:{" "}
+          <ContactEmail />
         </p>
       </Section>
     </LegalShell>
