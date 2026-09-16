@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Wordmark } from "@/components/Brand";
 import { LoginForm } from "./LoginForm";
 import { getCurrentUser } from "@/lib/session";
+import { passwordLoginEnabled } from "@/lib/env";
 
 export const metadata: Metadata = { title: "تسجيل الدخول" };
 
@@ -28,7 +29,7 @@ export default async function LoginPage() {
             <p className="mt-1.5 text-sm text-neutral-600">
               أدخل بريدك ونرسل لك رمز تحقق. لا حاجة لكلمة مرور.
             </p>
-            <LoginForm />
+            <LoginForm passwordLogin={passwordLoginEnabled} />
           </div>
 
           <p className="mt-4 text-center text-xs leading-relaxed text-neutral-500">

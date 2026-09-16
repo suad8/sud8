@@ -54,6 +54,19 @@ const schema = z.object({
 
   // بريد أول مدير — يُرقّى تلقائيًا عند التسجيل
   ADMIN_EMAILS: z.preprocess((v) => v ?? "", z.string().default("")),
+
+  // ── دخول مؤقت بكلمة مرور ──────────────────────────────────────
+  // مخرج طوارئ لصاحب المنصة قبل تفعيل SMTP. مُطفأ افتراضيًا، ويخص
+  // حسابًا واحدًا فقط. أطفئه فور عمل البريد.
+  ALLOW_PASSWORD_LOGIN: z.preprocess(
+    (v) => String(v ?? "").toLowerCase() === "true",
+    z.boolean().default(false),
+  ),
+  OWNER_EMAIL: optionalText,
+  OWNER_PASSWORD: z.preprocess(
+    blankToUndefined,
+    z.string().min(12, "OWNER_PASSWORD يجب أن تكون 12 حرفًا فأكثر").optional(),
+  ),
 });
 
 /**
@@ -111,11 +124,28 @@ const FALLBACK = {
   PRO_PRICE_HALALAS: 2900,
   PRO_CURRENCY: "SAR",
   ADMIN_EMAILS: process.env.ADMIN_EMAILS ?? "",
+  ALLOW_PASSWORD_LOGIN: false,
+  OWNER_EMAIL: undefined,
+  OWNER_PASSWORD: undefined,
 } satisfies z.infer<typeof schema>;
 
 export const env: z.infer<typeof schema> = parsed.success ? parsed.data : FALLBACK;
 
 export const isProd = env.NODE_ENV === "production";
+
+/**
+ * هل الدخول بكلمة المرور مفعّل فعليًا؟ لا يكفي العلم وحده — لا بد من
+ * بريد وكلمة مرور صالحين، وإلا بقي المسار مغلقًا.
+ */
+export const passwordLoginEnabled =
+  env.ALLOW_PASSWORD_LOGIN && Boolean(env.OWNER_EMAIL) && Boolean(env.OWNER_PASSWORD);
+
+if (passwordLoginEnabled) {
+  console.warn(
+    "\n⚠️  الدخول بكلمة المرور مفعّل — مخرج مؤقت لصاحب المنصة." +
+      "\n   أطفئه بحذف ALLOW_PASSWORD_LOGIN فور عمل البريد.\n",
+  );
+}
 
 /** قائمة بُرد المدراء بحروف صغيرة */
 export const adminEmails = env.ADMIN_EMAILS.split(",")

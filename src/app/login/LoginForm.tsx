@@ -3,13 +3,14 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-type Step = "email" | "code";
+type Step = "email" | "code" | "password";
 
-export function LoginForm() {
+export function LoginForm({ passwordLogin = false }: { passwordLogin?: boolean }) {
   const router = useRouter();
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -58,6 +59,34 @@ export function LoginForm() {
     }
   }
 
+  async function signInWithPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/auth/password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message ?? "تعذّر الدخول");
+        setPassword("");
+        return;
+      }
+
+      router.push(data.next ?? "/dashboard");
+      router.refresh();
+    } catch {
+      setError("تعذّر الاتصال بالخادم. حاول مجددًا.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function verify(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -85,6 +114,66 @@ export function LoginForm() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (step === "password") {
+    return (
+      <form onSubmit={signInWithPassword} className="mt-6 space-y-4" noValidate>
+        <div className="note-warn">
+          <strong>دخول مؤقت.</strong> مخصّص لصاحب المنصة حتى يُفعَّل البريد.
+        </div>
+
+        <div>
+          <label htmlFor="pw-email" className="label">البريد الإلكتروني</label>
+          <input
+            id="pw-email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            dir="ltr"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="input text-left"
+            placeholder="you@example.com"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="pw" className="label">كلمة المرور</label>
+          <input
+            id="pw"
+            type="password"
+            autoComplete="current-password"
+            dir="ltr"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="input text-left"
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "pw-error" : undefined}
+          />
+        </div>
+
+        {error && <p id="pw-error" role="alert" className="error-text">{error}</p>}
+
+        <button
+          type="submit"
+          disabled={loading || !email || !password}
+          className="btn-primary w-full"
+        >
+          {loading ? <Spinner /> : "دخول"}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => { setStep("email"); setPassword(""); setError(null); }}
+          className="w-full text-sm font-medium text-neutral-600 hover:text-neutral-900"
+        >
+          الدخول برمز على البريد بدلًا من ذلك
+        </button>
+      </form>
+    );
   }
 
   if (step === "email") {
@@ -119,6 +208,16 @@ export function LoginForm() {
         <button type="submit" disabled={loading || !email} className="btn-primary w-full">
           {loading ? <Spinner /> : "أرسل رمز التحقق"}
         </button>
+
+        {passwordLogin && (
+          <button
+            type="button"
+            onClick={() => { setStep("password"); setError(null); }}
+            className="w-full text-sm font-medium text-neutral-600 hover:text-neutral-900"
+          >
+            الدخول بكلمة المرور
+          </button>
+        )}
       </form>
     );
   }
