@@ -26,9 +26,20 @@ export async function POST(req: Request) {
   });
   if (!page) return fail("الصفحة غير موجودة", 404);
 
-  // نقبل فقط المعرّفات المملوكة فعلًا لهذه الصفحة
   const owned = new Set(page.accounts.map((a) => a.id));
-  const ids = parsed.data.ids.filter((id) => owned.has(id));
+  const ids = parsed.data.ids;
+
+  // نرفض الطلب كله إن حوى معرّفًا لا يخصّ هذا المستخدم، بدل تصفيته
+  // بصمت والردّ بنجاح. التصفية لا تُسرّب شيئًا، لكن النجاح الصامت
+  // يخفي طلبًا كان يجب أن يُرفض.
+  const foreign = ids.filter((id) => !owned.has(id));
+  if (foreign.length > 0) {
+    return fail("قائمة الترتيب تحتوي حسابًا لا يخصّك", 403);
+  }
+
+  if (new Set(ids).size !== ids.length) {
+    return fail("قائمة الترتيب فيها تكرار", 400);
+  }
 
   if (ids.length !== page.accounts.length) {
     return fail("قائمة الترتيب لا تطابق حساباتك", 400);
