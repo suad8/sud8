@@ -33,7 +33,12 @@ export default async function LoginPage() {
           </div>
 
           <p className="mt-4 text-center text-xs leading-relaxed text-neutral-500">
-            بالمتابعة أنت توافق على أن تكون البيانات التي تنشرها صحيحة وتخصّك.
+            بالمتابعة توافق على{" "}
+            <Link href="/terms" className="font-semibold text-brand-700">شروط الاستخدام</Link>
+            {" "}و{" "}
+            <Link href="/privacy" className="font-semibold text-brand-700">سياسة الخصوصية</Link>،
+            وتقرّ بأن بيانات الحسابات التي تنشرها صحيحة وتخصّك، وأنها ستكون
+            ظاهرة لكل من يفتح رابط صفحتك.
           </p>
         </div>
       </main>

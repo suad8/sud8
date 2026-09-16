@@ -184,6 +184,47 @@
     @apply note border-danger-200 bg-danger-50 text-danger-700;
   }
 
+  /* ── الوثائق النظامية ───────────────────────────────────────── */
+  .legal p {
+    @apply max-w-[68ch];
+  }
+
+  .legal ul {
+    @apply max-w-[68ch] space-y-1.5 pr-5;
+  }
+
+  .legal li {
+    @apply list-disc;
+  }
+
+  .legal a {
+    @apply font-semibold text-brand-700 underline underline-offset-2;
+  }
+
+  .legal code {
+    @apply rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[0.85em] text-neutral-800;
+  }
+
+  /* border-separate ليحترم الجدول زواياه المستديرة */
+  .legal table {
+    @apply w-full table-fixed overflow-hidden rounded-xl border
+           border-neutral-200 bg-white text-sm;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .legal thead {
+    @apply bg-neutral-50;
+  }
+
+  .legal th {
+    @apply px-3.5 py-2.5 text-right font-semibold text-neutral-900;
+  }
+
+  .legal td {
+    @apply border-t border-neutral-100 px-3.5 py-2.5 align-top text-neutral-700;
+  }
+
   /* ── العناوين ───────────────────────────────────────────────── */
   .h-page {
     @apply text-xl font-bold tracking-tight text-neutral-900;

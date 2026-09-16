@@ -40,6 +40,7 @@ export default async function DashboardLayout({
             { href: "/dashboard/settings", label: "إعداد الصفحة" },
             { href: "/dashboard/share", label: "المشاركة" },
             { href: "/dashboard/billing", label: "الاشتراك" },
+            { href: "/dashboard/privacy", label: "بياناتي" },
           ].map((l) => (
             <Link
               key={l.href}

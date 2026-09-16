@@ -168,6 +168,14 @@ export default async function HomePage() {
             «حوّل» تعرض بيانات الحسابات كما يدخلها صاحب الصفحة. تأكّد من صحة
             البيانات مع الشخص نفسه قبل أي تحويل.
           </p>
+          <nav className="flex flex-wrap justify-center gap-4 text-xs">
+            <Link href="/privacy" className="font-semibold text-neutral-600 hover:text-brand-700">
+              سياسة الخصوصية
+            </Link>
+            <Link href="/terms" className="font-semibold text-neutral-600 hover:text-brand-700">
+              شروط الاستخدام
+            </Link>
+          </nav>
           <p className="text-xs text-neutral-400">© {new Date().getFullYear()} حوّل</p>
         </div>
       </footer>
