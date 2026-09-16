@@ -28,12 +28,14 @@ export default async function SettingsPage() {
           theme: normalizeTheme(page.theme),
           accentColor: page.accentColor ?? "",
           hideBranding: page.hideBranding,
+          customCss: page.customCss ?? "",
           isPublished: page.isPublished,
           avatarId: page.avatarId,
         }}
         themes={THEMES.map((t) => ({ ...t, locked: !plan.themes.includes(t.id) }))}
         canCustomColors={plan.customColors}
         canRemoveBranding={plan.removeBranding}
+        canCustomCss={plan.customCss}
       />
     </div>
   );

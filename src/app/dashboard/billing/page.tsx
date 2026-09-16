@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
-import { PLANS, formatPrice } from "@/lib/plans";
+import { PLANS, discountPct, formatPrice } from "@/lib/plans";
 import { env } from "@/lib/env";
 import { UpgradeButton } from "./UpgradeButton";
 
@@ -54,10 +54,22 @@ export default async function BillingPage() {
       {!isPro && (
         <section className="card border-brand-200 p-5">
           <h2 className="text-lg font-bold text-neutral-900">{pro.name}</h2>
-          <p className="mt-1 text-2xl font-bold text-neutral-900">
-            {formatPrice(pro.priceHalalas, pro.currency)}
-            <span className="text-base font-medium text-neutral-500"> / شهريًا</span>
-          </p>
+          <div className="mt-1 flex flex-wrap items-baseline gap-2">
+            <span className="text-2xl font-bold text-neutral-900">
+              {formatPrice(pro.priceHalalas, pro.currency)}
+            </span>
+            <span className="text-sm font-medium text-neutral-500">/ شهريًا</span>
+            {pro.wasPriceHalalas > pro.priceHalalas && (
+              <>
+                <span className="text-sm text-neutral-400 line-through">
+                  {formatPrice(pro.wasPriceHalalas, pro.currency)}
+                </span>
+                <span className="badge bg-danger-600 text-white">
+                  وفّر {discountPct(pro.wasPriceHalalas, pro.priceHalalas)}%
+                </span>
+              </>
+            )}
+          </div>
 
           <ul className="mt-4 space-y-2">
             {pro.features.map((f) => (

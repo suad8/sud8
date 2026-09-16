@@ -11,6 +11,7 @@ type Initial = {
   accentColor: string;
   hideBranding: boolean;
   isPublished: boolean;
+  customCss: string;
   avatarId: string | null;
 };
 
@@ -21,11 +22,13 @@ export function PageSettingsForm({
   themes,
   canCustomColors,
   canRemoveBranding,
+  canCustomCss,
 }: {
   initial: Initial;
   themes: ThemeOption[];
   canCustomColors: boolean;
   canRemoveBranding: boolean;
+  canCustomCss: boolean;
 }) {
   const router = useRouter();
   const [form, setForm] = useState(initial);
@@ -285,6 +288,41 @@ export function PageSettingsForm({
           نشر الصفحة (إلغاء التحديد يخفيها عن الزوار)
         </label>
       </section>
+
+      {canCustomCss && (
+        <section className="card space-y-3 p-5">
+          <div>
+            <h2 className="font-bold text-neutral-900">CSS مخصص</h2>
+            <p className="hint">
+              تحكّم كامل بتصميم صفحتك العامة. جرّب{" "}
+              <code className="font-mono text-xs">.themed-card</code> للبطاقات و
+              <code className="font-mono text-xs">.btn-copy</code> لزر النسخ.
+            </p>
+          </div>
+
+          <textarea
+            id="customCss"
+            dir="ltr"
+            rows={9}
+            spellCheck={false}
+            maxLength={8000}
+            value={form.customCss}
+            onChange={(e) => set("customCss", e.target.value)}
+            className="input h-auto py-3 font-mono text-xs leading-relaxed"
+            placeholder={".themed-card { border-radius: 24px; }\n.btn-copy { letter-spacing: .02em; }"}
+          />
+          <p className="hint">{form.customCss.length}/8000</p>
+
+          <div className="note-warn">
+            <strong>لأمان زوّارك:</strong> تُزال الروابط الخارجية و
+            <code className="font-mono text-xs">@import</code> و
+            <code className="font-mono text-xs">position:fixed</code>، ويبقى
+            تنبيه التحقق وعلامة «حوّل» ظاهرين دائمًا.
+          </div>
+
+          {errors.customCss && <p className="error-text">{errors.customCss}</p>}
+        </section>
+      )}
 
       {errors._ && (
         <p role="alert" className="error-text">

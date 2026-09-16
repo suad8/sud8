@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { formatIban } from "@/lib/iban";
 import { usernameSchema } from "@/lib/validation";
 import { normalizeTheme } from "@/lib/plans";
+import { protectionCss, sanitizeCss } from "@/lib/css";
 import { CopyButton } from "@/components/CopyButton";
 import { Glyph } from "@/components/Brand";
 import { ShareBar } from "./ShareBar";
@@ -67,6 +68,10 @@ export default async function PublicPage({ params }: Props) {
 
   const initial = page.displayName.trim().charAt(0) || "؟";
 
+  // تعقيم ثانٍ عند العرض: البيانات المخزّنة معقّمة أصلًا، لكن تشديد
+  // القواعد لاحقًا يجب أن يسري على ما حُفظ قبله
+  const userCss = page.customCss ? sanitizeCss(page.customCss).css : "";
+
   return (
     <div
       // normalizeTheme يحمي من معرّف ثيم قديم أو غير معروف — بدونه تُعرض
@@ -75,6 +80,14 @@ export default async function PublicPage({ params }: Props) {
       // اللون المخصص يتجاوز رمز الثيم وحده — بقية الرموز تبقى متناسقة
       style={page.accentColor ? { ["--accent" as string]: page.accentColor } : undefined}
     >
+      {userCss ? (
+        <style
+          // المحتوى معقّم: لا < ولا > ولا @import ولا روابط خارجية.
+          // قواعد الحماية تأتي بعده فلا يستطيع إخفاء التنبيه أو العلامة.
+          dangerouslySetInnerHTML={{ __html: userCss + protectionCss() }}
+        />
+      ) : null}
+
       <div className="mx-auto w-full max-w-md px-4 pt-12">
         {/* ── الهوية ── */}
         <header className="flex flex-col items-center text-center">
@@ -160,7 +173,7 @@ export default async function PublicPage({ params }: Props) {
         </main>
 
         <p
-          className="themed-muted mt-6 rounded-lg px-4 py-3 text-center text-xs leading-relaxed"
+          className="hawwil-notice themed-muted mt-6 rounded-lg px-4 py-3 text-center text-xs leading-relaxed"
           style={{ background: "color-mix(in srgb, var(--fg) 4%, transparent)" }}
         >
           هذه البيانات أدخلها صاحب الصفحة. «حوّل» لا تتحقق من ملكية الحسابات —
@@ -168,7 +181,7 @@ export default async function PublicPage({ params }: Props) {
         </p>
 
         {!page.hideBranding && (
-          <footer className="mt-8 flex justify-center">
+          <footer className="hawwil-brand mt-8 flex justify-center">
             <Link
               href="/"
               className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-semibold transition hover:opacity-80"

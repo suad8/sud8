@@ -49,7 +49,9 @@ const schema = z.object({
   // حدود الباقات والأسعار — كلها قابلة للتعديل من البيئة
   FREE_MAX_ACCOUNTS: countWithDefault(3),
   PRO_MAX_ACCOUNTS: countWithDefault(30),
-  PRO_PRICE_HALALAS: z.preprocess(blankToUndefined, z.coerce.number().int().nonnegative().default(2900)),
+  PRO_PRICE_HALALAS: z.preprocess(blankToUndefined, z.coerce.number().int().nonnegative().default(790)),
+  // السعر قبل الخصم — يُعرض مشطوبًا. صفر يعني لا خصم.
+  PRO_PRICE_WAS_HALALAS: z.preprocess(blankToUndefined, z.coerce.number().int().nonnegative().default(1800)),
   PRO_CURRENCY: z.preprocess(blankToUndefined, z.string().default("SAR")),
 
   // بريد أول مدير — يُرقّى تلقائيًا عند التسجيل
@@ -121,7 +123,8 @@ const FALLBACK = {
   PAYMENTS_WEBHOOK_SECRET: undefined,
   FREE_MAX_ACCOUNTS: 3,
   PRO_MAX_ACCOUNTS: 30,
-  PRO_PRICE_HALALAS: 2900,
+  PRO_PRICE_HALALAS: 790,
+  PRO_PRICE_WAS_HALALAS: 1800,
   PRO_CURRENCY: "SAR",
   ADMIN_EMAILS: process.env.ADMIN_EMAILS ?? "",
   ALLOW_PASSWORD_LOGIN: false,

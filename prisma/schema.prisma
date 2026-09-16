@@ -96,6 +96,7 @@ model Page {
   theme       String  @default("paper")
   accentColor String? // hex، PRO فقط
   hideBranding Boolean @default(false) // PRO فقط
+  customCss   String? // CSS مخصص، PRO فقط — يُعقَّم قبل التخزين والعرض
   isPublished Boolean @default(true)
 
   // إجراءات الإدارة

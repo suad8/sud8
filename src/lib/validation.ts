@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ALL_THEMES } from "./plans";
+import { MAX_CSS_LENGTH } from "./css";
 import { normalizeIban, validateAccountNumber, validateIban, validateWalletNumber } from "./iban";
 
 /** أسماء مستخدمين محجوزة — تمنع انتحال مسارات المنصة */
@@ -55,6 +56,11 @@ export const pageSettingsSchema = z.object({
     .or(z.literal("")),
   hideBranding: z.boolean().optional(),
   isPublished: z.boolean().optional(),
+  customCss: z
+    .string()
+    .max(MAX_CSS_LENGTH, `الحد الأقصى ${MAX_CSS_LENGTH} حرف`)
+    .optional()
+    .or(z.literal("")),
 });
 
 /**

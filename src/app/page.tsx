@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Glyph, Wordmark } from "@/components/Brand";
 import { CopyButton } from "@/components/CopyButton";
-import { PLANS, formatPrice } from "@/lib/plans";
+import { PLANS, discountPct, formatPrice } from "@/lib/plans";
 import { formatIban } from "@/lib/iban";
 import { getCurrentUser } from "@/lib/session";
 
@@ -115,12 +115,24 @@ export default async function HomePage() {
                   )}
 
                   <h3 className="h-section">{plan.name}</h3>
-                  <p className="mt-2 text-2xl font-bold tracking-tight text-neutral-900">
-                    {formatPrice(plan.priceHalalas, plan.currency)}
+                  <div className="mt-2 flex flex-wrap items-baseline gap-2">
+                    <span className="text-2xl font-bold tracking-tight text-neutral-900">
+                      {formatPrice(plan.priceHalalas, plan.currency)}
+                    </span>
                     {plan.priceHalalas > 0 && (
-                      <span className="text-sm font-medium text-neutral-500"> / شهريًا</span>
+                      <span className="text-sm font-medium text-neutral-500">/ شهريًا</span>
                     )}
-                  </p>
+                    {plan.wasPriceHalalas > plan.priceHalalas && (
+                      <>
+                        <span className="text-sm text-neutral-400 line-through">
+                          {formatPrice(plan.wasPriceHalalas, plan.currency)}
+                        </span>
+                        <span className="badge bg-danger-600 text-white">
+                          خصم {discountPct(plan.wasPriceHalalas, plan.priceHalalas)}%
+                        </span>
+                      </>
+                    )}
+                  </div>
 
                   <ul className="mt-4 space-y-2">
                     {plan.features.map((f) => (

@@ -5,6 +5,7 @@ import { pageSettingsSchema, fieldErrors } from "@/lib/validation";
 import { assertSameOrigin, fail, ok, readJson, requireUser, tooMany } from "@/lib/api";
 import { LIMITS } from "@/lib/ratelimit";
 import { canUseTheme, planOf } from "@/lib/plans";
+import { sanitizeCss } from "@/lib/css";
 
 /** إنشاء أو تحديث صفحة المستخدم */
 export async function PUT(req: Request) {
@@ -31,6 +32,14 @@ export async function PUT(req: Request) {
     return fail("هذا الثيم متاح في باقة PRO", 403, { theme: "متاح في PRO" });
   }
   const accentColor = plan.customColors && data.accentColor ? data.accentColor : null;
+
+  // CSS للـ PRO فقط، ويُعقَّم قبل التخزين لا عند العرض فقط — فلا يُحفظ
+  // في قاعدة البيانات شيء خطِر أصلًا
+  let customCss: string | null = null;
+  if (plan.customCss && data.customCss) {
+    const { css } = sanitizeCss(data.customCss);
+    customCss = css || null;
+  }
   const hideBranding = plan.removeBranding ? (data.hideBranding ?? false) : false;
 
   try {
@@ -43,6 +52,7 @@ export async function PUT(req: Request) {
         theme: data.theme,
         accentColor,
         hideBranding,
+        customCss,
         isPublished: data.isPublished ?? true,
       },
       create: {
@@ -53,6 +63,7 @@ export async function PUT(req: Request) {
         theme: data.theme,
         accentColor,
         hideBranding,
+        customCss,
         isPublished: data.isPublished ?? true,
       },
     });

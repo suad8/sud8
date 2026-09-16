@@ -9,10 +9,13 @@ export type PlanDef = {
   id: Plan;
   name: string;
   priceHalalas: number;
+  /** السعر قبل الخصم — 0 يعني لا خصم */
+  wasPriceHalalas: number;
   currency: string;
   maxAccounts: number;
   themes: readonly string[];
   customColors: boolean;
+  customCss: boolean;
   removeBranding: boolean;
   features: readonly string[];
 };
@@ -61,10 +64,12 @@ export const PLANS: Record<Plan, PlanDef> = {
     id: "FREE",
     name: "المجانية",
     priceHalalas: 0,
+    wasPriceHalalas: 0,
     currency: env.PRO_CURRENCY,
     maxAccounts: env.FREE_MAX_ACCOUNTS,
     themes: FREE_THEMES,
     customColors: false,
+    customCss: false,
     removeBranding: false,
     features: [
       `حتى ${env.FREE_MAX_ACCOUNTS} حسابات`,
@@ -77,16 +82,19 @@ export const PLANS: Record<Plan, PlanDef> = {
     id: "PRO",
     name: "PRO",
     priceHalalas: env.PRO_PRICE_HALALAS,
+    wasPriceHalalas: env.PRO_PRICE_WAS_HALALAS,
     currency: env.PRO_CURRENCY,
     maxAccounts: env.PRO_MAX_ACCOUNTS,
     themes: ALL_THEMES,
     customColors: true,
+    customCss: true,
     removeBranding: true,
     features: [
       `حتى ${env.PRO_MAX_ACCOUNTS} حسابًا`,
       "كل الثيمات",
       "لون مخصص للهوية",
       "إزالة علامة «حوّل»",
+      "أكواد CSS مخصصة — تحكّم كامل بالتصميم",
       "رمز QR قابل للتنزيل",
     ],
   },
@@ -102,6 +110,12 @@ export function formatPrice(halalas: number, currency: string): string {
   const amount = halalas / 100;
   const shown = Number.isInteger(amount) ? String(amount) : amount.toFixed(2);
   return `${shown} ${currency === "SAR" ? "ر.س" : currency}`;
+}
+
+/** نسبة الخصم مقرَّبة لأقرب عدد صحيح */
+export function discountPct(was: number, now: number): number {
+  if (was <= 0 || now >= was) return 0;
+  return Math.round(((was - now) / was) * 100);
 }
 
 /** هل يملك المستخدم صلاحية استخدام ثيم معيّن؟ */
